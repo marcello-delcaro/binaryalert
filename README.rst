@@ -37,3 +37,16 @@ Links
 - `Announcement Post <https://medium.com/airbnb-engineering/binaryalert-real-time-serverless-malware-detection-ca44370c1b90>`_
 - `Documentation <https://binaryalert.io>`_
 - `Slack <https://binaryalert.herokuapp.com>`_ (unofficial)
+
+THOR integration
+--------------------
+
+This repository fork utilizes THOR (see `https://www.nextron-systems.com/thor/`) instead of yextend and yara-python 
+to check for YARA matches. This has the advantage that THOR's large built-in YARA
+ruleset is also applied.
+
+To use this fork, you require a THOR license that is not host based and a THOR package for Linux with at least version 10.6.0 
+(not yet released). Place the contents from the THOR package and your THOR license into ``lambda_functions/analyzer/dependencies.zip``.
+
+The further deployment process is the same as for the original BinaryAlert; see the documentation at `https://binaryalert.io` for details.
+
