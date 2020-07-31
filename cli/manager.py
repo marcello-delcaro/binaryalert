@@ -18,7 +18,6 @@ from cbapi.response.models import Binary
 from cli.config import get_input, BinaryAlertConfig, TERRAFORM_DIR
 from cli.enqueue_task import EnqueueTask, Worker
 from cli.exceptions import InvalidConfigError, TestFailureError
-from lambda_functions.analyzer.common import COMPILED_RULES_FILENAME
 from lambda_functions.build import build as lambda_build
 from rules import compile_rules, clone_rules
 from tests import live_test
@@ -152,8 +151,7 @@ class Manager:
     @staticmethod
     def compile_rules() -> None:
         """Compile all of the YARA rules into a single binary file"""
-        compile_rules.compile_rules(COMPILED_RULES_FILENAME)
-        print('Compiled rules saved to {}'.format(COMPILED_RULES_FILENAME))
+        pass
 
     def configure(self) -> None:
         """Update basic configuration, including region, prefix, and downloader settings"""

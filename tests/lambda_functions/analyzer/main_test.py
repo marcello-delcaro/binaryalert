@@ -2,16 +2,15 @@
 import hashlib
 import json
 import os
+import requests
 import subprocess
 from unittest import mock
 import urllib.parse
 
 from pyfakefs import fake_filesystem_unittest
 
-from lambda_functions.analyzer import yara_analyzer
-from lambda_functions.analyzer.common import COMPILED_RULES_FILEPATH
 from tests import common
-from tests.lambda_functions.analyzer import yara_mocks
+from tests.lambda_functions.analyzer import thor_mocks
 
 # Mock S3 bucket and objects.
 MOCK_S3_BUCKET_NAME = 'mock-bucket'
@@ -29,7 +28,6 @@ MOCK_SNS_TOPIC_ARN = 's3:mock-sns-arn'
 # Mimics minimal parts of S3:ObjectAdded event that triggers the lambda function.
 LAMBDA_VERSION = 1
 TEST_CONTEXT = common.MockLambdaContext(LAMBDA_VERSION)
-
 
 class MockS3Object:
     """Simple mock for boto3.resource('s3').Object"""
@@ -66,8 +64,6 @@ class MainTest(fake_filesystem_unittest.TestCase):
 
         # Set up the fake filesystem.
         self.setUpPyfakefs()
-        os.makedirs(os.path.dirname(COMPILED_RULES_FILEPATH))
-        yara_mocks.save_test_yara_rules(COMPILED_RULES_FILEPATH)
 
         # Create test event.
         self._test_event = {
@@ -101,8 +97,7 @@ class MainTest(fake_filesystem_unittest.TestCase):
 
         # Import the module under test (now that YARA is mocked out).
         with mock.patch('boto3.client'), mock.patch('boto3.resource'), \
-                mock.patch.object(yara_analyzer.yara, 'load',
-                                  side_effect=yara_mocks.mock_yara_load):
+            mock.patch.object(subprocess, 'Popen', side_effect=thor_mocks.mock_thor_start):
             from lambda_functions.analyzer import main
             self.main = main
 
@@ -195,32 +190,29 @@ class MainTest(fake_filesystem_unittest.TestCase):
         self.assertEqual(expected, result)
 
     @mock.patch.object(subprocess, 'check_call')
-    @mock.patch.object(subprocess, 'check_output', return_value=b'[{"yara_matches_found": false}]')
-    def test_analyze_lambda_handler(self, mock_output: mock.MagicMock, mock_call: mock.MagicMock):
+    @mock.patch.object(subprocess, 'check_output')
+    @mock.patch.object(requests, 'post', side_effect=[thor_mocks._THOR_NO_MATCHES, thor_mocks._THOR_MATCH])
+    def test_analyze_lambda_handler(self, mock_post: mock.MagicMock, mock_output: mock.MagicMock, mock_call: mock.MagicMock):
         """Verify return value, logging, and boto3 calls when multiple files match YARA rules."""
         with mock.patch.object(self.main, 'LOGGER') as mock_logger:
             result = self.main.analyze_lambda_handler(self._test_event, TEST_CONTEXT)
             # Verify logging statements.
             mock_logger.assert_has_calls([
                 mock.call.info('Analyzing "%s:%s"', MOCK_S3_BUCKET_NAME, GOOD_S3_OBJECT_KEY),
-                mock.call.warning(
-                    '%s matched YARA rules: %s',
-                    mock.ANY,
-                    {'externals.yar:filename_contains_win32'}
-                ),
+                mock.call.info(
+                    '%s did not match any YARA rules',
+                    mock.ANY),
                 mock.call.info('Analyzing "%s:%s"', MOCK_S3_BUCKET_NAME, EVIL_S3_OBJECT_KEY),
                 mock.call.warning(
                     '%s matched YARA rules: %s',
                     mock.ANY,
-                    {'evil_check.yar:contains_evil', 'externals.yar:extension_is_exe'}
+                    {'THOR:Example_Rule'}
                 )
             ])
 
-            # Verify 2 UPX and yextend calls
+            # Verify 2 UPX calls
             mock_output.assert_has_calls([
                 mock.call(['./upx', '-q', '-d', mock.ANY], stderr=subprocess.STDOUT),
-                mock.call(['./yextend', '-r', COMPILED_RULES_FILEPATH, '-t', mock.ANY, '-j'],
-                          stderr=subprocess.STDOUT)
             ] * 2)
 
             # Verify 2 shred calls
@@ -240,16 +232,8 @@ class MainTest(fake_filesystem_unittest.TestCase):
                     'S3Metadata': GOOD_FILE_METADATA,
                     'SHA256': hashlib.sha256(GOOD_FILE_CONTENTS.encode('utf-8')).hexdigest()
                 },
-                'MatchedRules': {
-                    'Rule1': {
-                        'MatchedData': [],
-                        'MatchedStrings': [],
-                        'Meta': {},
-                        'RuleFile': 'externals.yar',
-                        'RuleName': 'filename_contains_win32',
-                    }
-                },
-                'NumMatchedRules': 1
+                'MatchedRules': {},
+                'NumMatchedRules': 0
             },
             evil_s3_id: {
                 'FileInfo': {
@@ -261,25 +245,20 @@ class MainTest(fake_filesystem_unittest.TestCase):
                 },
                 'MatchedRules': {
                     'Rule1': {
-                        'MatchedData': ['evil'],
-                        'MatchedStrings': ['$evil_string'],
-                        'Meta': {
-                            'author': 'Austin Byers',
-                            'description': ('A helpful description about why this rule matches '
-                                            'dastardly evil files.')
-                        },
-                        'RuleFile': 'evil_check.yar',
-                        'RuleName': 'contains_evil',
-                    },
-                    'Rule2': {
-                        'MatchedData': [],
+                        'MatchedData': ['example match'],
                         'MatchedStrings': [],
-                        'Meta': {},
-                        'RuleFile': 'externals.yar',
-                        'RuleName': 'extension_is_exe',
+                        'Meta': {
+                            'description': 'Rule description',
+                            'reference': 'Rule reference',
+                            'tags': 'EXAMPLETAG HKTL',
+                            'score': '75',
+                            'date': '',
+                        },
+                        'RuleFile': 'THOR',
+                        'RuleName': 'Example_Rule',
                     }
                 },
-                'NumMatchedRules': 2
+                'NumMatchedRules': 1
             }
         }
 
@@ -298,11 +277,6 @@ class MainTest(fake_filesystem_unittest.TestCase):
             mock.call.Topic(MOCK_SNS_TOPIC_ARN),
             mock.call.Topic().publish(
                 Message=mock.ANY,
-                Subject='[BinaryAlert] win32 matches a YARA rule'
-            ),
-            mock.call.Topic(MOCK_SNS_TOPIC_ARN),
-            mock.call.Topic().publish(
-                Message=mock.ANY,
                 Subject='[BinaryAlert] /path/to/mock-evil.exe matches a YARA rule'
             )
         ])
@@ -318,12 +292,12 @@ class MainTest(fake_filesystem_unittest.TestCase):
                     },
                     {
                         'MetricName': 'MatchedBinaries',
-                        'Value': 2,
+                        'Value': 1,
                         'Unit': 'Count'
                     },
                     {
                         'MetricName': 'YaraRules',
-                        'Value': 3,
+                        'Value': 1,
                         'Unit': 'Count'
                     },
                     {

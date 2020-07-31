@@ -59,43 +59,15 @@ class BuildTest(unittest.TestCase):
                 'lambda_functions/analyzer/yara_analyzer.py',
 
                 # Compiled rules file
-                'lambda_functions/analyzer/compiled_yara_rules.bin',
+                'custom-signatures/yara/custom-rules.yac',
 
                 # Natively compiled binaries
-                'cryptography/',
-                'libarchive.so.13',
-                'libs/',
-                'libs/bayshore_file_type_detect.o',
-                'libs/bayshore_file_type_detect.yara',
-                'libs/bayshore_yara_wrapper.o',
-                'libs/bzl.o',
-                'libs/pdf_parser.o',
-                'libs/zl.o',
-                'libfontconfig.so.1',
-                'libfreetype.so.6',
-                'libjbig.so.2.0',
-                'libjpeg.so.62',
-                'liblcms2.so.2',
-                'liblzma.so.5',
-                'liblzo2.so.2',
-                'libopenjpeg.so.2',
-                'libpcrecpp.so.0',
-                'libpoppler.so.46',
-                'libpng12.so.0',
-                'libstdc++.so.6',
-                'libtiff.so.5',
-                'libyara.so.3',
-                'libxml2.so.2',
-                'pdftotext',
+                'thor-linux-64',
                 'upx',
-                'yara.so',
-                'yextend',
 
                 # Licenses
                 'UPX_LICENSE',
-                'YARA_LICENSE',
-                'YARA_PYTHON_LICENSE',
-                'YEXTEND_LICENSE'
+                'docs/License_Acknowledgement.txt',
             },
             subset=True
         )

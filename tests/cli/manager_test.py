@@ -73,14 +73,6 @@ class ManagerTest(FakeFilesystemBase):
         self.manager.clone_rules()
         mock_clone.assert_called_once()
 
-    @mock.patch.object(manager_module.compile_rules, 'compile_rules')
-    @mock.patch.object(manager_module, 'print')
-    def test_compile_rules(self, mock_print: mock.MagicMock, mock_compile: mock.MagicMock):
-        """Calls compile_rules (tested elsewhere)."""
-        self.manager.compile_rules()
-        mock_compile.assert_called_once()
-        mock_print.assert_called_once()
-
     @mock.patch.object(BinaryAlertConfig, 'configure')
     @mock.patch.object(manager_module, 'print')
     def test_configure(self, mock_print: mock.MagicMock, mock_configure: mock.MagicMock):
