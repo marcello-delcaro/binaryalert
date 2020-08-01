@@ -39,18 +39,18 @@ You can still use your custom YARA rules along with the THOR encrypted rule set 
 
 We've replaced the original method to apply YARA rules to reduce the YARA scanning to a sinlge instance. It takes much longer to apply two rule sets one after another than combining them first and apply them in a single step. 
 
-============
+************
 Requirements
-============
+************
 
 This BinaryAlert fork requires 
 
 * a THOR "service" license and 
 * a THOR package for Linux with at least version 10.6.0
 
-===============
+***************
 Getting Started
-===============
+***************
 
 1. Get a THOR 10 for Linux package
 2. Get a THOR service license from the Nextron customer portal
@@ -61,21 +61,21 @@ Getting Started
 
 Place the contents from the THOR package and your THOR license into ``lambda_functions/analyzer/dependencies.zip``.
 
-----------------------------
+============================
 Add Your Customer YARA Rules
-----------------------------
+============================
 
 Place your rules in the folder ``./thor10-linux/custom-signatures/yara`` before running the command in ``6.`` of the "Getting Started" guide. 
 
---------------------------
+==========================
 Activate Advanced Features
---------------------------
+==========================
 
 To activate the advanced analyzers for the file types mentioned above (registry hives, memory dumps, EVTX files, WER files), removed the ``--pure-yara`` flag in the file ``yara_analyzer.py``. 
 
-=====
+*****
 Links
-=====
+*****
 
 - `THOR Scanner <https://www.nextron-systems.com/thor/>`_
 - `Announcement Post <https://medium.com/airbnb-engineering/binaryalert-real-time-serverless-malware-detection-ca44370c1b90>`_
