@@ -24,16 +24,16 @@ This repository fork utilizes THOR in service mode (see `https://www.nextron-sys
 This integration has the following advantages:
 
 * Includes THOR's 10,000+ hand-crafted YARA rule set with focus on 
-  * APT related malware 
-  * Hack tools 
-  * Forensic artefacts 
-  * Obfuscation techniques 
-  * Web shells
+   * APT related malware 
+   * Hack tools 
+   * Forensic artefacts 
+   * Obfuscation techniques 
+   * Web shells
 * Special file types supported
-  * Registry hives (full walk and IOC application)
-  * Memory dumps (full YARA scan)
-  * EVTX Eventlogs (log parsing and IOC application)
-  * WER files (error report analysis)
+   * Registry hives (full walk and IOC application)
+   * Memory dumps (full YARA scan)
+   * EVTX Eventlogs (log parsing and IOC application)
+   * WER files (error report analysis)
 
 You can still use your custom YARA rules along with the THOR encrypted rule set by placing them in the ``./custom-signatures/yara`` sub folder in THOR's program folder. 
 
