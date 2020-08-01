@@ -35,7 +35,9 @@ This integration has the following advantages:
    * EVTX Eventlogs (log parsing and IOC application)
    * WER files (error report analysis)
 
-You can still use your custom YARA rules along with the THOR encrypted rule set by placing them in the ``./custom-signatures/yara`` sub folder in THOR's program folder. 
+You can still use your custom YARA rules along with the THOR encrypted rule set by placing them in the ``./custom-signatures/yara`` sub folder in THOR's program folder.
+
+We've replaced the original method to apply YARA rules to reduce the YARA scanning to a sinlge instance. It takes much longer to apply two rule sets one after another than combining them first and apply them in a single step. 
 
 ============
 Requirements
@@ -47,10 +49,29 @@ This BinaryAlert fork requires
 * a THOR package for Linux with at least version 10.6.0
 
 ===============
-Gatting Started
+Getting Started
 ===============
 
+1. Get a THOR 10 for Linux package
+2. Get a THOR service license from the Nextron customer portal
+3. Extract the THOR 10 for Linux package and place the license in the extracted program directory
+4. Clone this binaryalert fork ``git clone https://github.com/NextronSystems/binaryalert.git``
+5. ``cd`` into the ``thor10-linux`` directory
+6. Add the THOR 10 program folder with the ``*.lic`` license file to ``dependencies.zip`` in the binaryalert folder ``zip -ur ../binaryalert/lambda_functions/analyzer/dependencies.zip ./``
+
 Place the contents from the THOR package and your THOR license into ``lambda_functions/analyzer/dependencies.zip``.
+
+----------------------------
+Add Your Customer YARA Rules
+----------------------------
+
+Place your rules in the folder ``./thor10-linux/custom-signatures/yara`` before running the command in ``6.`` of the "Getting Started" guide. 
+
+--------------------------
+Activate Advanced Features
+--------------------------
+
+To activate the advanced analyzers for the file types mentioned above (registry hives, memory dumps, EVTX files, WER files), removed the ``--pure-yara`` flag in the file ``yara_analyzer.py``. 
 
 =====
 Links
