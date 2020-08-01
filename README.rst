@@ -78,6 +78,5 @@ Links
 *****
 
 - `THOR Scanner <https://www.nextron-systems.com/thor/>`_
-- `Announcement Post <https://medium.com/airbnb-engineering/binaryalert-real-time-serverless-malware-detection-ca44370c1b90>`_
-- `Documentation <https://binaryalert.io>`_
-- `Slack <https://binaryalert.herokuapp.com>`_ (unofficial)
+- `BinaryAlert Announcement Post <https://medium.com/airbnb-engineering/binaryalert-real-time-serverless-malware-detection-ca44370c1b90>`_
+- `BinaryAlert Documentation <https://binaryalert.io>`_
