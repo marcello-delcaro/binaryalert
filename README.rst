@@ -65,7 +65,7 @@ Place the contents from the THOR package and your THOR license into ``lambda_fun
 Add Your Customer YARA Rules
 ============================
 
-Place your rules in the folder ``./thor10-linux/custom-signatures/yara`` before running the command in ``6.`` of the "Getting Started" guide. 
+Place your rules in the folder - or better: a dedicated sub folder - within ``./rules``. Your rules will automatically get initialized with THOR. 
 
 ==========================
 Activate Advanced Features
