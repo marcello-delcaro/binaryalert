@@ -56,9 +56,9 @@ class CompileRulesTest(TestCase):
             os.remove('compiled_yara_rules.bin')
 
     def test_compilation(self):
-        """Ensure all real YARA rules compile correctly."""
-        compile_rules.compile_rules('compiled_yara_rules.bin')
-        rules = yara.load('compiled_yara_rules.bin')
+        """Ensure all real YARA rules are gathered correctly and compile."""
+        compile_rules.copy_rules('compiled_yara_rules.bin')
+        rules = yara.compile(filepath='compiled_yara_rules.bin')
         num_rules_files = sum(1 for _ in compile_rules._find_yara_files())
         # The number of compiled YARA rules should be >= the number of YARA rule files.
         self.assertGreaterEqual(sum(1 for _ in rules), num_rules_files)

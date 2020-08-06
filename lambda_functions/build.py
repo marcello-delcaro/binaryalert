@@ -10,7 +10,7 @@ import tempfile
 from typing import Callable
 import zipfile
 
-from rules.compile_rules import compile_rules
+from rules.compile_rules import copy_rules
 
 LAMBDA_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -72,8 +72,8 @@ def _build_function(function_name: str, target_directory: str,
 def _build_analyzer_callback(temp_package_dir: str) -> None:
     """Custom routine to execute before zipping up the analyzer package."""
 
-    compile_rules(
-        os.path.join(temp_package_dir, 'custom-signatures', 'yara', 'custom-rules.yac'))
+    copy_rules(
+        os.path.join(temp_package_dir, 'custom-signatures', 'yara', 'custom-rules.yar'))
     # Make UPX and yextend executable for everyone.
     for executable in ['thor-linux-64', 'upx']:
         path = os.path.join(temp_package_dir, executable)

@@ -59,7 +59,7 @@ class BuildTest(unittest.TestCase):
                 'lambda_functions/analyzer/yara_analyzer.py',
 
                 # Compiled rules file
-                'custom-signatures/yara/custom-rules.yac',
+                'custom-signatures/yara/custom-rules.yar',
 
                 # Natively compiled binaries
                 'thor-linux-64',
