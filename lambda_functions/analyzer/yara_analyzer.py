@@ -28,7 +28,7 @@ class YaraAnalyzer:
         """Initialize the analyzer.
         """
         LOGGER.info('Starting THOR server')
-        self.proc = subprocess.Popen(['/usr/local/lib/thor/thor-linux-64', '--server', '--pure-yara'], stdout=subprocess.PIPE, universal_newlines=True)
+        self.proc = subprocess.Popen(['./thor-linux-64', '--server', '--pure-yara'], stdout=subprocess.PIPE, universal_newlines=True)
         self._rule_count = 0
         startup_successful = False
         while not startup_successful and self.proc.poll() is None:
