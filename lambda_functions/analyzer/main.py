@@ -133,7 +133,7 @@ def analyze_lambda_handler(event: Dict[str, Any], lambda_context: Any) -> Dict[s
                 sns_enabled=alerts_enabled)
         else:
             LOGGER.info('%s did not match any YARA rules', binary)
-            if alerts_enabled and 'NO_MATCHES_SNS_TOPIC_ARN' in os.environ:
+            if alerts_enabled and 'NO_MATCHES_SNS_TOPIC_ARN' in os.environ and os.environ['NO_MATCHES_SNS_TOPIC_ARN']:
                 binary.publish_negative_match_result(os.environ['NO_MATCHES_SNS_TOPIC_ARN'])
 
     # Publish metrics.
