@@ -33,7 +33,7 @@ class YaraAnalyzer:
         startup_successful = False
         while not startup_successful and self.proc.poll() is None:
             line = self.proc.stdout.readline()
-            if "Server started" in line:
+            if "service started" in line:
                 startup_successful = True
             if "default YARA rules" in line:
                 self._rule_count = int(line.split()[4])
@@ -75,20 +75,19 @@ class YaraAnalyzer:
             messages = response.json()
             for message in messages:
                 LOGGER.info("Received THOR log message: %s", str(message))
-                i = 1
-                try:
-                    while "rulename_" + str(i) in message["context"]:
-                        metadata = {
-                            "description": message["context"]["reason_"+str(i)].split(" / ", 2)[1],
-                            "reference": message["context"]["ref_"+str(i)],
-                            "date": message["context"]["ruledate_"+str(i)],
-                            "tags": message["context"]["tags_"+str(i)],
-                            "score": message["context"]["subscore_"+str(i)],
-                        }
-                        string_matches = string_splitter.split(message["context"]["matched_"+str(i)])[1::2]
-                        thor_matches.append(YaraMatch(message["context"]["rulename_"+str(i)], "THOR", metadata, set(), set(string_matches)))
-                        i += 1
-                except (IndexError, KeyError): # THOR line with unexpected syntax
-                    LOGGER.info("Could not parse THOR message: %s", str(message))
+                if "matches" in message:
+                    for match in message["matches"]:
+                        try:
+                            metadata = {
+                                "description": match["reason"],
+                                "reference": match["ref"],
+                                "date": match["ruledate"],
+                                "tags": ", ".join(match["tags"]),
+                                "score": match["subscore"],
+                            }
+                            string_matches = match["matched"]
+                            thor_matches.append(YaraMatch(match["rulename"], "THOR", metadata, set(), set(string_matches)))
+                        except (IndexError, KeyError): # THOR match with unexpected syntax
+                            LOGGER.info("Could not parse THOR match: %s", str(match))
         response.close()
         return thor_matches
