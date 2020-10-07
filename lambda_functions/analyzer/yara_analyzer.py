@@ -7,8 +7,6 @@ from typing import List
 
 from lambda_functions.analyzer.common import LOGGER
 
-string_splitter = re.compile('(?<!\\\\)\\\"')
-
 # YARA matches from both yara-python and yextend are stored in this generic YaraMatch tuple.
 YaraMatch = collections.namedtuple(
     'YaraMatch',
@@ -21,6 +19,8 @@ YaraMatch = collections.namedtuple(
     ]
 )
 
+RULE_COUNT_REGEX = re.compile("compiled ([0-9]+) default YARA rules")
+
 class YaraAnalyzer:
     """Encapsulates YARA analysis and matching functions."""
 
@@ -28,15 +28,16 @@ class YaraAnalyzer:
         """Initialize the analyzer.
         """
         LOGGER.info('Starting THOR server')
-        self.proc = subprocess.Popen(['./thor-linux-64', '--server', '--pure-yara'], stdout=subprocess.PIPE, universal_newlines=True)
+        self.proc = subprocess.Popen(['./thor-linux-64', '--thunderstorm', '--pure-yara'], stdout=subprocess.PIPE, universal_newlines=True)
         self._rule_count = 0
         startup_successful = False
         while not startup_successful and self.proc.poll() is None:
             line = self.proc.stdout.readline()
             if "service started" in line:
                 startup_successful = True
-            if "default YARA rules" in line:
-                self._rule_count = int(line.split()[4])
+            rulecountmatch = RULE_COUNT_REGEX.search(line)
+            if rulecountmatch is not None:
+                self._rule_count = int(rulecountmatch.group(1))
             LOGGER.info(line)
         if not startup_successful:
             LOGGER.info(self.proc.stdout.read())
