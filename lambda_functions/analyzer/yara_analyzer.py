@@ -86,8 +86,13 @@ class YaraAnalyzer:
                                 "tags": ", ".join(match["tags"]),
                                 "score": match["subscore"],
                             }
+                            namespace = "THOR"
+                            if "sigtype" in match and (match["sigtype"] == 1 or match["sigtype"] == "custom"):
+                                namespace = "custom"
                             string_matches = match["matched"]
-                            thor_matches.append(YaraMatch(match["rulename"], "THOR", metadata, set(), set(string_matches)))
+                            if string_matches is None:
+                                string_matches = []
+                            thor_matches.append(YaraMatch(match["rulename"], namespace, metadata, set(["Unknown"]), set(string_matches)))
                         except (IndexError, KeyError): # THOR match with unexpected syntax
                             LOGGER.info("Could not parse THOR match: %s", str(match))
         response.close()
