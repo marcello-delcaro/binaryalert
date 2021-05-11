@@ -91,7 +91,7 @@ class YaraAnalyzer:
                                 namespace = "custom"
                             string_matches = match["matched"]
                             if string_matches is None:
-                                string_matches = []
+                                string_matches = ["None"]
                             thor_matches.append(YaraMatch(match["rulename"], namespace, metadata, set(["Unknown"]), set(string_matches)))
                         except (IndexError, KeyError): # THOR match with unexpected syntax
                             LOGGER.info("Could not parse THOR match: %s", str(match))
