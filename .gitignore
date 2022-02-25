@@ -31,3 +31,6 @@ terminal.glue
 
 # Documentation build
 docs/build/
+
+# Compiled bytecode
+*.pyc
