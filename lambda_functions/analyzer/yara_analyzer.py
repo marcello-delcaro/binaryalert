@@ -54,11 +54,9 @@ class YaraAnalyzer:
 
     def analyze(self, target_file: str, original_target_path: str = '') -> List[YaraMatch]:
         """Run YARA analysis on a file.
-
         Args:
             target_file: Local path to target file to be analyzed.
             original_target_path: Path where the target file was originally discovered.
-
         Returns:
             List of YaraMatch tuples.
         """
@@ -91,7 +89,7 @@ class YaraAnalyzer:
                                 namespace = "custom"
                             string_matches = match["matched"]
                             if string_matches is None:
-                                string_matches = ["None"]
+                                string_matches = ["Unknown"]
                             thor_matches.append(YaraMatch(match["rulename"], namespace, metadata, set(["Unknown"]), set(string_matches)))
                         except (IndexError, KeyError): # THOR match with unexpected syntax
                             LOGGER.info("Could not parse THOR match: %s", str(match))

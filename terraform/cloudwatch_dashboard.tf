@@ -381,4 +381,3 @@ resource "aws_cloudwatch_dashboard" "binaryalert" {
   // We have to strip quotes around numbers, so that {"value": "123"} turns into {"value": 123}
   dashboard_body = replace(local.dashboard_body, "/\"([0-9]+)\"/", "$1")
 }
-

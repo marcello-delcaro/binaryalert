@@ -8,7 +8,6 @@ import json
 import os
 from typing import Any, Dict, Generator, Tuple
 import urllib.parse
-
 from botocore.exceptions import ClientError
 
 from lambda_functions.analyzer import analyzer_aws_lib, binary_info, yara_analyzer
@@ -24,10 +23,8 @@ NUM_YARA_RULES = ANALYZER.num_rules
 
 def _objects_to_analyze(event: Dict[str, Any]) -> Generator[Tuple[str, str], None, None]:
     """Parse the invocation event into a list of objects to analyze.
-
     Args:
         event: Invocation event (SQS message whose message body is an S3 event notification)
-
     Yields:
         (bucket_name, object_key) string tuples to analyze
     """
@@ -54,7 +51,6 @@ def _objects_to_analyze(event: Dict[str, Any]) -> Generator[Tuple[str, str], Non
 
 def analyze_lambda_handler(event: Dict[str, Any], lambda_context: Any) -> Dict[str, Any]:
     """Analyzer Lambda function entry point.
-
     Args:
         event: SQS message batch - each message body is a JSON-encoded S3 notification - {
             'Records': [
@@ -79,15 +75,12 @@ def analyze_lambda_handler(event: Dict[str, Any], lambda_context: Any) -> Dict[s
                 }
             ]
         }
-
         Alternatively, direct invocation is supported with the following event - {
             'BucketName': '...',
             'EnableSNSAlerts': True,
             'ObjectKeys': ['key1', 'key2', ...],
         }
-
         lambda_context: LambdaContext object (with .function_version).
-
     Returns:
         A dict mapping S3 object identifier to a summary of file info and matched YARA rules.
         Example: {

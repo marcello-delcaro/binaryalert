@@ -1,7 +1,6 @@
 """Collection of boto3 calls to AWS resources for the analyzer function."""
 import json
 from typing import Dict, List, Optional, Set, Tuple, Union
-
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.client import Config
@@ -208,6 +207,7 @@ class DynamoMatchTable:
             'SHA256': binary.computed_sha,
             'AnalyzerVersion': analyzer_version,
             'MatchedRules': binary.matched_rule_ids,
+            'Result': binary.yara_matches,
             'MD5': binary.computed_md5,
             'S3LastModified': binary.s3_last_modified,
             'S3Metadata': self._replace_empty_strings(binary.s3_metadata),
@@ -275,3 +275,4 @@ class DynamoMatchTable:
             needs_alert = True
 
         return needs_alert
+

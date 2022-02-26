@@ -123,7 +123,7 @@ class BinaryInfo:
             'Rule{}'.format(index): {
                 'MatchedData': list(sorted(match.matched_data)),  # E.g. "HelloWorld"
                 'MatchedStrings': list(sorted(match.matched_strings)),  # E.g. "$string1"
-                'Meta': match.rule_metadata,
+                'Metadata': match.rule_metadata,
                 'RuleFile': match.rule_namespace,
                 'RuleName': match.rule_name
             }
@@ -142,3 +142,4 @@ class BinaryInfo:
             'MatchedRules': matched_rules,
             'NumMatchedRules': len(self.yara_matches)
         }
+
