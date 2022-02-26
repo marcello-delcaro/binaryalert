@@ -16,20 +16,20 @@ Read the documentation at `binaryalert.io <https://binaryalert.io>`_.
 THOR integration
 ****************
 
-This repository fork utilizes THOR in service mode (see `https://www.nextron-systems.com/thor/`) to replace  yextend and yara-python to check for YARA matches. 
+This repository fork utilizes THOR Thunderstorm (THOR as a web service, see `https://www.nextron-systems.com/thor-thunderstorm/`) to replace  yextend and yara-python to check for YARA matches. 
 
 .. image:: /docs/images/thor-binary-alert-overview.png 
   :alt: THOR Integration with BinaryAlert
 
 This integration has the following advantages:
 
-* Includes THOR's 10,000+ hand-crafted YARA rule set with focus on 
+* Includes THOR's 15,000+ hand-crafted YARA rule set with focus on 
    * APT related malware 
    * Hack tools 
    * Forensic artefacts 
    * Obfuscation techniques 
    * Web shells
-* Special file types supported
+* Special file type support
    * Registry hives (full walk and IOC application)
    * Memory dumps (full YARA scan)
    * EVTX Eventlogs (log parsing and IOC application)
