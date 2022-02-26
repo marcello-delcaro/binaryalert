@@ -37,7 +37,7 @@ This integration has the following advantages:
 
 You can still use your custom YARA rules along with the THOR encrypted rule set by placing them in the ``./custom-signatures/yara`` sub folder in THOR's program folder.
 
-We've replaced the original method to apply YARA rules to reduce the YARA scanning to a sinlge instance. It takes much longer to apply two rule sets one after another than combining them first and apply them in a single step. 
+We've replaced the original YARA scanning method and reduced the YARA scanning to a sinlge instance. It takes much longer to apply two rule sets one after another than combining them first and applying them in a single step. 
 
 ************
 Requirements
@@ -46,7 +46,7 @@ Requirements
 This BinaryAlert fork requires 
 
 * a THOR "service" license and 
-* a THOR package for Linux with at least version 10.6.0
+* a THOR package for Linux (minimum version 10.6.0)
 
 ***************
 Getting Started
