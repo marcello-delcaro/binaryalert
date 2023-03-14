@@ -25,5 +25,6 @@ rm -rf /binaryalert/lambda_functions/analyzer/temp_dep/
 ./manage.py apply
 ./manage.py build
 wait
+## ./dashboard.py if custom dashboard created, it will repopulate here
 ./dashboard.py
 echo "THOR has been updated"
