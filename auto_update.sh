@@ -10,7 +10,8 @@ mv /binaryalert/lambda_functions/analyzer/*.lic /binaryalert/lambda_functions/an
 chmod u+x /binaryalert/lambda_functions/analyzer/temp_dep/thor-util
 # upgrade to lastest THOR version using thor-util
 echo "Launching THOR util to update licenses, YARA rules, and THOR" >&3
-/binaryalert/lambda_functions/analyzer/temp_dep/thor-util update && /binaryalert/lambda_functions/analyzer/temp_dep/thor-util upgrade --techpreview >&3
+# to update rules use update, to upgrade thor use upgrade
+/binaryalert/lambda_functions/analyzer/temp_dep/thor-util update >&3
 wait
 rm -rf /binaryalert/lambda_functions/analyzer/dependencies.zip
 cd /binaryalert/lambda_functions/analyzer/temp_dep/ && zip -ro ../dependencies.zip .
