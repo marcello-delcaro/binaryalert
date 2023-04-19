@@ -70,7 +70,7 @@ class BinaryInfo:
         # behind by subprocesses (e.g. pdftotext).
         for root, dirs, files in os.walk(tempfile.gettempdir(), topdown=False):
             for name in files:
-                subprocess.check_call(['shred', '--force', '--remove', os.path.join(root, name)])
+                subprocess.call(['shred', '--force', '--remove', os.path.join(root, name)])
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
 
