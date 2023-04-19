@@ -60,13 +60,6 @@ class YaraAnalyzer:
         Returns:
             List of YaraMatch tuples.
         """
-        # UPX-unpack the file if possible
-        try:
-            # Ignore all UPX output
-            subprocess.check_output(['./upx', '-q', '-d', target_file], stderr=subprocess.STDOUT)
-            LOGGER.info('Unpacked UPX-compressed file %s', target_file)
-        except subprocess.CalledProcessError:
-            pass  # Not a packed file
         thor_matches = []
         # THOR matches
         response = requests.post('http://127.0.0.1:8080/api/check', files=dict(file=open(target_file, 'rb')))
