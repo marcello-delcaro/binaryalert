@@ -23,6 +23,19 @@ SNS = boto3.resource('sns')
 class FileDownloadError(Exception):
     """File can't be downloaded from S3 with a 4XX error code - do not retry."""
 
+def get_file_size_from_s3(bucket_name: str, object_key: str) -> int:
+    """Get the file size of an object in S3.
+
+    Args:
+        bucket_name: S3 bucket name.
+        object_key: S3 object key.
+
+    Returns:
+        The file size in bytes.
+    """
+    s3_object = S3.Object(bucket_name, object_key)
+    s3_object.load()  # Important to call load() to get the metadata
+    return s3_object.content_length
 
 def download_from_s3(
         bucket_name: str, object_key: str, download_path: str) -> Tuple[str, Dict[str, str]]:
@@ -275,4 +288,5 @@ class DynamoMatchTable:
             needs_alert = True
 
         return needs_alert
+
 

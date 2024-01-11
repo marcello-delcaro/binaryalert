@@ -13,6 +13,7 @@ from lambda_functions.analyzer.yara_analyzer import YaraAnalyzer, YaraMatch
 
 class BinaryInfo:
     """Organizes the analysis of a single binary blob in S3."""
+    MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024  # 200 MB
 
     def __init__(self, bucket_name: str, object_key: str, yara_analyzer: YaraAnalyzer) -> None:
         """Create a new BinaryInfo.
@@ -43,23 +44,35 @@ class BinaryInfo:
         return self.s3_identifier
 
     def _download_from_s3(self) -> None:
-        """Download binary from S3 and measure elapsed time."""
-        LOGGER.debug('Downloading %s to %s', self.object_key, self.download_path)
+        """Download binary from S3 and measure elapsed time, if it's under the size limit."""
+        file_size = analyzer_aws_lib.get_file_size_from_s3(self.bucket_name, self.object_key)
 
+        if file_size > self.MAX_FILE_SIZE_BYTES:
+            LOGGER.warning(f'File {self.object_key} is too large ({file_size} bytes). Skipping download.')
+            return  # Skip the download
+
+        LOGGER.debug('Downloading %s to %s', self.object_key, self.download_path)
         start_time = time.time()
         self.s3_last_modified, self.s3_metadata = analyzer_aws_lib.download_from_s3(
             self.bucket_name, self.object_key, self.download_path)
         self.download_time_ms = (time.time() - start_time) * 1000
 
-    def __enter__(self) -> Any:  # mypy/typing doesn't support recursive type yet
+    def __enter__(self) -> Any:
         """Download the binary from S3 and run YARA analysis."""
-        self._download_from_s3()
-        self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
 
-        LOGGER.debug('Running YARA analysis')
-        self.yara_matches = self.yara_analyzer.analyze(
-            self.download_path, original_target_path=self.filepath
-        )
+        self._download_from_s3()
+
+        # Only proceed with analysis if the file was actually downloaded
+        if os.path.exists(self.download_path):
+            self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
+
+            LOGGER.debug('Running YARA analysis')
+            self.yara_matches = self.yara_analyzer.analyze(
+                self.download_path, original_target_path=self.filepath
+            )
+        else:
+            # Handle the case where the file wasn't downloaded, e.g., log a message
+            LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
 
         return self
 
@@ -142,4 +155,5 @@ class BinaryInfo:
             'MatchedRules': matched_rules,
             'NumMatchedRules': len(self.yara_matches)
         }
+
 

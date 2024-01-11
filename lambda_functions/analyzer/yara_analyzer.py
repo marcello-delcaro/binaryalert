@@ -19,25 +19,34 @@ YaraMatch = collections.namedtuple(
     ]
 )
 
-RULE_COUNT_REGEX = re.compile("compiled ([0-9]+) default YARA rules")
+RULE_COUNT_REGEX = re.compile("Info Successfully compiled ([0-9]+) default YARA rules")
 
 class YaraAnalyzer:
     """Encapsulates YARA analysis and matching functions."""
 
     def __init__(self) -> None:
-        """Initialize the analyzer.
-        """
-        LOGGER.info('Starting THOR server')
-        self.proc = subprocess.Popen(['./thor-linux-64', '--thunderstorm', '--pure-yara'], stdout=subprocess.PIPE, universal_newlines=True)
+        """Initialize the analyzer."""
+        self.proc = None
         self._rule_count = 0
+
+    def _start_thor_server(self):
+        """Starts the THOR server."""
+        LOGGER.info('Starting THOR server')
+        self.proc = subprocess.Popen(
+            ['./thor-linux-64', '--thunderstorm', '--pure-yara', 
+             '--nothordb', '--nolog', '--nocsv'], 
+            stdout=subprocess.PIPE, universal_newlines=True
+        )
         startup_successful = False
         while not startup_successful and self.proc.poll() is None:
             line = self.proc.stdout.readline()
+            self.proc.stdout.flush()
             if "service started" in line:
                 startup_successful = True
             rulecountmatch = RULE_COUNT_REGEX.search(line)
             if rulecountmatch is not None:
                 self._rule_count = int(rulecountmatch.group(1))
+                LOGGER.info('YARA rule count: %d', self._rule_count)
             LOGGER.info(line)
         if not startup_successful:
             LOGGER.info(self.proc.stdout.read())
@@ -45,7 +54,8 @@ class YaraAnalyzer:
         LOGGER.info('Started THOR server')
 
     def __del__(self) -> None:
-        self.proc.kill()
+        if self.proc:
+            self.proc.kill()
 
     @property
     def num_rules(self) -> int:
@@ -54,12 +64,25 @@ class YaraAnalyzer:
 
     def analyze(self, target_file: str, original_target_path: str = '') -> List[YaraMatch]:
         """Run YARA analysis on a file.
+        
         Args:
             target_file: Local path to target file to be analyzed.
             original_target_path: Path where the target file was originally discovered.
+        
         Returns:
             List of YaraMatch tuples.
         """
+        # UPX-unpack the file if possible
+        try:
+            # Ignore all UPX output
+            subprocess.check_output(['./upx', '-q', '-d', target_file], stderr=subprocess.STDOUT)
+            LOGGER.info('Unpacked UPX-compressed file %s', target_file)
+        except subprocess.CalledProcessError:
+            pass  # Not a packed file
+
+        if self.proc is None:
+            self._start_thor_server()
+
         thor_matches = []
         # THOR matches
         response = requests.post('http://127.0.0.1:8080/api/check', files=dict(file=open(target_file, 'rb')))
@@ -88,3 +111,5 @@ class YaraAnalyzer:
                             LOGGER.info("Could not parse THOR match: %s", str(match))
         response.close()
         return thor_matches
+
+
