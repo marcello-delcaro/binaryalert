@@ -72,13 +72,6 @@ class YaraAnalyzer:
         Returns:
             List of YaraMatch tuples.
         """
-        # UPX-unpack the file if possible
-        try:
-            # Ignore all UPX output
-            subprocess.check_output(['./upx', '-q', '-d', target_file], stderr=subprocess.STDOUT)
-            LOGGER.info('Unpacked UPX-compressed file %s', target_file)
-        except subprocess.CalledProcessError:
-            pass  # Not a packed file
 
         if self.proc is None:
             self._start_thor_server()
