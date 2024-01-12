@@ -16,9 +16,6 @@ from lambda_functions.analyzer.common import LOGGER
 # Build the YaraAnalyzer from the compiled rules file at import time (i.e. once per container).
 # This saves 50-100+ ms per Lambda invocation, depending on the size of the rules file.
 ANALYZER = yara_analyzer.YaraAnalyzer()
-# Due to a bug in yara-python, num_rules only be computed once. Thereafter, it will return 0.
-# So we have to compute this here since multiple invocations may share the same analyzer.
-NUM_YARA_RULES = ANALYZER.num_rules
 
 
 def _objects_to_analyze(event: Dict[str, Any]) -> Generator[Tuple[str, str], None, None]:
@@ -132,7 +129,7 @@ def analyze_lambda_handler(event: Dict[str, Any], lambda_context: Any) -> Dict[s
     # Publish metrics.
     if binaries:
         try:
-            analyzer_aws_lib.put_metric_data(NUM_YARA_RULES, binaries)
+            analyzer_aws_lib.put_metric_data(ANALYZER.num_rules, binaries)
         except ClientError:
             LOGGER.exception('Error saving metric data')
 

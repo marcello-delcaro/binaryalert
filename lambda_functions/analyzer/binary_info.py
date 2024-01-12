@@ -30,14 +30,16 @@ class BinaryInfo:
         self.download_path = os.path.join(
             tempfile.gettempdir(), 'binaryalert_{}'.format(uuid.uuid4()))
         self.yara_analyzer = yara_analyzer
-
+    
         # Computed after file download and analysis.
+        self.is_skipped = False
         self.download_time_ms = 0.0
         self.s3_last_modified = ''
         self.s3_metadata: Dict[str, str] = dict()
         self.computed_md5 = ''
         self.computed_sha = ''
         self.yara_matches: List[YaraMatch] = list()
+        
 
     def __str__(self) -> str:
         """Use the S3 identifier as the string representation of the binary."""
@@ -49,8 +51,8 @@ class BinaryInfo:
 
         if file_size > self.MAX_FILE_SIZE_BYTES:
             LOGGER.warning(f'File {self.object_key} is too large ({file_size} bytes). Skipping download.')
-            return  # Skip the download
-
+            self.is_skipped = True
+            
         LOGGER.debug('Downloading %s to %s', self.object_key, self.download_path)
         start_time = time.time()
         self.s3_last_modified, self.s3_metadata = analyzer_aws_lib.download_from_s3(
@@ -62,30 +64,37 @@ class BinaryInfo:
 
         self._download_from_s3()
 
-        # Only proceed with analysis if the file was actually downloaded
-        if os.path.exists(self.download_path):
+        # Only proceed with analysis if the file was not skipped
+        if self.is_skipped:
+            LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
+        else:
             self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
 
             LOGGER.debug('Running YARA analysis')
             self.yara_matches = self.yara_analyzer.analyze(
                 self.download_path, original_target_path=self.filepath
             )
-        else:
-            # Handle the case where the file wasn't downloaded, e.g., log a message
-            LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
 
         return self
 
     def __exit__(self, exception_type: Any, exception_value: Any, traceback: Any) -> None:
-        """Shred and delete all /tmp files (including the downloaded binary)."""
-        # Note: This runs even during exception handling (it is the "with" context).
-        # The only temp file we explicitly create is self.download_path, but others can be left
-        # behind by subprocesses (e.g. pdftotext).
+        """Delete all /tmp files (including the downloaded binary)."""
         for root, dirs, files in os.walk(tempfile.gettempdir(), topdown=False):
             for name in files:
-                subprocess.call(['shred', '--force', '--remove', os.path.join(root, name)])
+                file_path = os.path.join(root, name)
+                try:
+                    os.remove(file_path)
+                    LOGGER.info(f'Deleted file {file_path}')
+                except OSError as e:
+                    LOGGER.error(f'Error deleting file {file_path}: {e}')
+
             for name in dirs:
-                os.rmdir(os.path.join(root, name))
+                dir_path = os.path.join(root, name)
+                try:
+                    os.rmdir(dir_path)
+                    LOGGER.info(f'Deleted directory {dir_path}')
+                except OSError as e:
+                    LOGGER.error(f'Error removing directory {dir_path}: {e}')
 
     @property
     def matched_rule_ids(self) -> Set[str]:
