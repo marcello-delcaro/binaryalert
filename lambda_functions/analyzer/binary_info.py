@@ -52,7 +52,8 @@ class BinaryInfo:
         if file_size > self.MAX_FILE_SIZE_BYTES:
             LOGGER.warning(f'File {self.object_key} is too large ({file_size} bytes). Skipping download.')
             self.is_skipped = True
-            
+            return
+
         LOGGER.debug('Downloading %s to %s', self.object_key, self.download_path)
         start_time = time.time()
         self.s3_last_modified, self.s3_metadata = analyzer_aws_lib.download_from_s3(
@@ -164,5 +165,6 @@ class BinaryInfo:
             'MatchedRules': matched_rules,
             'NumMatchedRules': len(self.yara_matches)
         }
+
 
 
