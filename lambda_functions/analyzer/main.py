@@ -108,7 +108,10 @@ def analyze_lambda_handler(event: Dict[str, Any], lambda_context: Any) -> Dict[s
         LOGGER.info('Analyzing "%s:%s"', bucket_name, object_key)
 
         try:
+            if not object_key:
+                continue
             if analyzer_aws_lib.get_file_size_from_s3(bucket_name, object_key) > binary_info.BinaryInfo.MAX_FILE_SIZE_BYTES:
+                LOGGER.info('File %s is too large - no results created', object_key)
                 continue
             with binary_info.BinaryInfo(bucket_name, object_key, ANALYZER) as binary:
                 result[binary.s3_identifier] = binary.summary()
@@ -136,4 +139,5 @@ def analyze_lambda_handler(event: Dict[str, Any], lambda_context: Any) -> Dict[s
             LOGGER.exception('Error saving metric data')
 
     return result
+
 

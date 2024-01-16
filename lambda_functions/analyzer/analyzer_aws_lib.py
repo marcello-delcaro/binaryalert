@@ -34,8 +34,8 @@ def get_file_size_from_s3(bucket_name: str, object_key: str) -> int:
         The file size in bytes.
     """
     if not object_key:
-        raise ValueError("Object key is empty or invalid")
-
+        return
+    
     s3_object = S3.Object(bucket_name, object_key)
     s3_object.load()  # Important to call load() to get the metadata
     return s3_object.content_length
@@ -56,7 +56,7 @@ def download_from_s3(
         FileDownloadError: If the file couldn't be downloaded because
     """
     if not object_key:
-        raise ValueError("Object key is empty or invalid")
+        return
     try:
         s3_object = S3.Object(bucket_name, object_key)
         s3_object.download_file(download_path)
@@ -293,4 +293,6 @@ class DynamoMatchTable:
             needs_alert = True
 
         return needs_alert
+
+
 

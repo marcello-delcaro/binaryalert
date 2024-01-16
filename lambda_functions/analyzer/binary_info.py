@@ -30,7 +30,7 @@ class BinaryInfo:
         self.download_path = os.path.join(
             tempfile.gettempdir(), 'binaryalert_{}'.format(uuid.uuid4()))
         self.yara_analyzer = yara_analyzer
-    
+
         # Computed after file download and analysis.
         self.is_skipped = False
         self.download_time_ms = 0.0
@@ -39,7 +39,6 @@ class BinaryInfo:
         self.computed_md5 = ''
         self.computed_sha = ''
         self.yara_matches: List[YaraMatch] = list()
-        
 
     def __str__(self) -> str:
         """Use the S3 identifier as the string representation of the binary."""
@@ -52,7 +51,7 @@ class BinaryInfo:
         if file_size > self.MAX_FILE_SIZE_BYTES:
             LOGGER.warning(f'File {self.object_key} is too large ({file_size} bytes). Skipping download.')
             self.is_skipped = True
-            return
+            return 
 
         LOGGER.debug('Downloading %s to %s', self.object_key, self.download_path)
         start_time = time.time()
@@ -66,17 +65,20 @@ class BinaryInfo:
         self._download_from_s3()
 
         # Only proceed with analysis if the file was not skipped
-        if self.is_skipped:
-            LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
+        if os.path.exists(self.download_path):
+            if self.is_skipped:
+                LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
+            else:
+                self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
+
+                LOGGER.debug('Running YARA analysis')
+                self.yara_matches = self.yara_analyzer.analyze(
+                    self.download_path, original_target_path=self.filepath
+                )
+
+            return self
         else:
-            self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
-
-            LOGGER.debug('Running YARA analysis')
-            self.yara_matches = self.yara_analyzer.analyze(
-                self.download_path, original_target_path=self.filepath
-            )
-
-        return self
+            LOGGER.info(f"File was not downloaded as the key does not exist")
 
     def __exit__(self, exception_type: Any, exception_value: Any, traceback: Any) -> None:
         """Delete all /tmp files (including the downloaded binary)."""
@@ -165,6 +167,3 @@ class BinaryInfo:
             'MatchedRules': matched_rules,
             'NumMatchedRules': len(self.yara_matches)
         }
-
-
-

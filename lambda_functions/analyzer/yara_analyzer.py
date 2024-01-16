@@ -33,8 +33,8 @@ class YaraAnalyzer:
         """Starts the THOR server."""
         LOGGER.info('Starting THOR server')
         self.proc = subprocess.Popen(
-            ['./thor-linux-64', '--thunderstorm', '--pure-yara', 
-             '--nothordb', '--nolog', '--nocsv'], 
+            ['./thor-linux-64', '--thunderstorm', '--pure-yara',  
+             '--nothordb',  '--nolog', '--nocsv'], 
             stdout=subprocess.PIPE, universal_newlines=True
         )
         startup_successful = False
@@ -46,7 +46,6 @@ class YaraAnalyzer:
             rulecountmatch = RULE_COUNT_REGEX.search(line)
             if rulecountmatch is not None:
                 self._rule_count = int(rulecountmatch.group(1))
-                LOGGER.info('YARA rule count: %d', self._rule_count)
             LOGGER.info(line)
         if not startup_successful:
             LOGGER.info(self.proc.stdout.read())
