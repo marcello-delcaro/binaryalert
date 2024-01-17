@@ -65,20 +65,18 @@ class BinaryInfo:
         self._download_from_s3()
 
         # Only proceed with analysis if the file was not skipped
-        if os.path.exists(self.download_path):
-            if self.is_skipped:
-                LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
-            else:
-                self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
 
-                LOGGER.debug('Running YARA analysis')
-                self.yara_matches = self.yara_analyzer.analyze(
-                    self.download_path, original_target_path=self.filepath
-                )
-
-            return self
+        if self.is_skipped:
+            LOGGER.info(f"Skipped analysis for {self.object_key} as the file was not downloaded.")
         else:
-            LOGGER.info(f"File was not downloaded as the key does not exist")
+            self.computed_sha, self.computed_md5 = file_hash.compute_hashes(self.download_path)
+
+            LOGGER.debug('Running YARA analysis')
+            self.yara_matches = self.yara_analyzer.analyze(
+                self.download_path, original_target_path=self.filepath
+            )
+
+        return self
 
     def __exit__(self, exception_type: Any, exception_value: Any, traceback: Any) -> None:
         """Delete all /tmp files (including the downloaded binary)."""
